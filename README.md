@@ -21,10 +21,10 @@ pip install -r requirements.txt
 # Demo
 
 - TRODO Benchmark (Note: Although seperate notebooks are provided for different attack settings, the hyperparameters are fixed and the method is attack and label-mapping agnostic.)
-    - [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rohban-lab/trodo/blob/main/Notebooks/Trodo - All to One - Clean.ipynb.ipynb) This notebook is designed to replicate and analyze the results of TRODO on our crafted benchmark, specifically for models backdoored with All to One mapping. Note that models are **not** trained adversarially.
+    - [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rohban-lab/trodo/blob/main/Notebooks/Trodo-All2One-Clean.ipynb.ipynb) This notebook is designed to replicate and analyze the results of TRODO on our crafted benchmark, specifically for models backdoored with All to One mapping. Note that models are **not** trained adversarially.
 
 - TrojAI Benchmark:
-    - [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rohban-lab/trodo/blob/main/Notebooks/Trodo - TrojAI.ipynb) This notebook is a demonstration of TRODO performance on TrojAI Benchmark.
+    - [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rohban-lab/trodo/blob/main/Notebooks/Trodo-TrojAI.ipynb) This notebook is a demonstration of TRODO performance on TrojAI Benchmark.
 
 # Citation 
 Please cite our work if you use the codebase: 
