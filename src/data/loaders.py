@@ -147,3 +147,90 @@ def get_cls_loader(dataset, train=False, sample_portion=0.2, batch_size=256, tra
     next(iter(testloader))
 
     return testloader
+
+def get_ood_loader(in_dataset=None, out_dataset=None,
+                   sample_num=None, batch_size=256,
+                   in_transform=None, out_transform=None,
+                   custom_ood_dataset=None, custom_in_dataset=None,
+                   out_in_ratio=1, final_ood_trans=None,
+                   only_ood=False, debug=False,
+                   **kwargs):
+    assert in_dataset is not None or custom_in_dataset is not None or custom_ood_dataset is not None or out_dataset is not None
+    
+    # In-Distribution Dataset
+    if custom_in_dataset is not None:
+        in_dataset = custom_in_dataset
+    elif in_dataset is not None:
+        in_dataset = get_dataset(in_dataset, in_transform, trian=True, **kwargs)
+    
+    try:
+        in_transform = in_dataset.transform
+    except Exception as _:
+        # Trojai dataset
+        pass
+    
+    # Sampling - ID
+    if in_dataset is not None and sample_num is not None:
+        in_dataset = sample_dataset(in_dataset, portion=sample_num)
+
+    # Labeling - ID
+    if in_dataset is not None:
+        in_dataset = SingleLabelDataset(IN_LABEL, in_dataset)
+
+    # Out-of-Distribution Dataset
+    if custom_ood_dataset is None:
+        if isinstance(out_dataset, str):
+            out_dataset = [out_dataset]
+        all_out_datasets = []
+        neg_datasets = []
+        for out in out_dataset:
+            try:
+                all_out_datasets.append(get_dataset(out, out_transform, train=True,
+                                                        in_dataset=in_dataset, in_transform=in_transform, **kwargs))
+            except Exception as e:
+                if debug:
+                    raise e
+                neg_datasets.append(out)
+                continue    
+        
+        if neg_datasets:
+            all_out_datasets.append(NegativeDataset(base_dataset=in_dataset, label=OUT_LABEL,
+                                        neg_transformations=neg_datasets, **kwargs))
+            
+        if in_dataset is not None:
+            length = int(out_in_ratio * len(in_dataset))
+        else:
+            length = sum([len(d) for d in all_out_datasets])
+        out_dataset = MixedDataset(all_out_datasets, label=OUT_LABEL, length=length, transform=out_transform)
+    else:
+        out_dataset = custom_ood_dataset
+        
+    if out_dataset and final_ood_trans:
+        if not isinstance(final_ood_trans, list):
+            final_ood_trans = [final_ood_trans]
+        out_dataset = NegativeDataset(base_dataset=out_dataset, label=OUT_LABEL,
+                                          neg_transformations=final_ood_trans, **kwargs)
+
+    # Labeling - OOD
+    if out_dataset is not None:
+        out_dataset = SingleLabelDataset(OUT_LABEL, out_dataset)
+    
+    if only_ood:
+        in_dataset = None
+
+    if in_dataset is not None and out_dataset is not None:
+        final_dataset = torch.utils.data.ConcatDataset([in_dataset, out_dataset])
+    elif in_dataset is not None:
+        final_dataset = in_dataset
+    elif out_dataset is not None:
+        final_dataset = out_dataset
+    else:
+        raise ValueError("Empty dataset error occured")
+    
+    testloader = torch.utils.data.DataLoader(final_dataset, batch_size=batch_size,
+                                         shuffle=True)
+    
+    # Sanity Check
+    next(iter(testloader))
+    
+    return testloader

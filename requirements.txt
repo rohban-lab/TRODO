@@ -3,3 +3,4 @@ torchvision
 albumentation
 scikit-learn
 tqdm
+seaborn
